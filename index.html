@@ -107,7 +107,10 @@
             height: 50px;  /* Allows scrolling inside message area */
             overflow-y: auto; 
             background-image: url("https://wallpapers.com/images/hd/evil-joker-1920-x-1035-wallpaper-1fhayn6vvj561vwn.jpg");
-            background-size: contain;
+            background-size: 100% 100%;  /* Stretches the image to fill the container */
+            background-position: center;  /* Centers the image */
+            background-repeat: no-repeat;  /* Prevents repeating the image */
+            height: 100vh;  /* Ensures the body takes up full viewport height */
             padding: 5px;
             border-radius: 5px;
             flex-grow: 1;
