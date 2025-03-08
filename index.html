@@ -17,25 +17,118 @@
         <section>
             
             <p>Welcome to Zurvalec.</p>
+            <p>Search the web with the power of Zurvalec.</p>
 
-            <p>Seach the web with the power of Zurvalec.</p>
-
-            <!--search bar-->
-            <script async src="https://cse.google.com/cse.js?cx=67105099be390449d">
-            </script>
+            <!-- Search bar -->
+            <script async src="https://cse.google.com/cse.js?cx=67105099be390449d"></script>
             <div class="gcse-search"></div>
 
-            <!--Gif button-->
+            <!-- Gif button -->
             <button onclick="window.location.href='https://github.com/brodcode/zurvalecLandingPage0'">
                 <img src="https://media.tenor.com/vOc-lwf_sr4AAAAM/detective-kiss.gif" alt="Exciting GIF" />
             </button>
+
+            <!-- Chatbot UI -->
+            <div id="chat-container">
+                <div id="chat-box">
+                    <div id="messages"></div>
+                    <input type="text" id="user-input" placeholder="Ask Zurvalec..." />
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
 
         </section>
     </main>
 
     <footer>
-        <p> <a href="https://github.com/brodcode"> Created by Brodcode </a>
+        <p> <a href="https://github.com/brodcode">Created by Brodcode</a>
             | <a href="https://www.zurvalec.org">zurvalec.org</a></p>
     </footer>
+
+    <script>
+        async function sendMessage() {
+            let userInput = document.getElementById("user-input").value;
+            if (!userInput) return;
+
+            let chatBox = document.getElementById("messages");
+            chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
+            document.getElementById("user-input").value = "";
+
+            let apiKey = "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";  // Replace with your actual API key
+            let response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [{ role: "user", content: userInput }]
+                })
+            });
+
+            let data = await response.json();
+            let botMessage = data.choices[0].message.content;
+            chatBox.innerHTML += `<div class="bot-message">${botMessage}</div>`;
+        }
+    </script>
+
+    <style>
+        #chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #chat-box {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        #messages {
+            height: 200px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            margin: 5px 0;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background: #f1f1f1;
+            color: #333;
+            padding: 5px;
+            border-radius: 5px;
+            margin: 5px 0;
+            align-self: flex-start;
+        }
+
+        #user-input {
+            width: 80%;
+            padding: 5px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 5px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+
 </body>
 </html>
