@@ -17,17 +17,15 @@
         <section>
             
             <p>Welcome to Zurvalec.</p>
-            <p>Search the web with the power of Zurvalec.</p>
+            
+            <p>Search the web with Zurvalec.</p>
 
             <!-- Search bar -->
             <script async src="https://cse.google.com/cse.js?cx=67105099be390449d"></script>
             <div class="gcse-search"></div>
 
-            <!-- Gif button -->
-            <button onclick="window.location.href='https://github.com/brodcode/zurvalecLandingPage0'">
-                <img src="https://media.tenor.com/vOc-lwf_sr4AAAAM/detective-kiss.gif" alt="Exciting GIF" />
-            </button>
-
+            <p> Talk with Zurvalec.</p>
+            
             <!-- Chatbot UI -->
             <div id="chat-container">
                 <div id="chat-box">
@@ -36,6 +34,11 @@
                     <button onclick="sendMessage()">Send</button>
                 </div>
             </div>
+            
+            <!-- Gif button -->
+            <button onclick="window.location.href='https://github.com/brodcode/zurvalecLandingPage0'">
+                <img src="https://media.tenor.com/vOc-lwf_sr4AAAAM/detective-kiss.gif" alt="Exciting GIF" />
+            </button>
 
         </section>
     </main>
@@ -49,36 +52,40 @@
         async function sendMessage() {
             let userInput = document.getElementById("user-input").value;
             if (!userInput) return;
-
+        
             let chatBox = document.getElementById("messages");
-            chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
+            
+            // Add user message
+            let userMessage = document.createElement("div");
+            userMessage.className = "user-message";
+            userMessage.textContent = userInput;
+            chatBox.appendChild(userMessage);
+        
             document.getElementById("user-input").value = "";
-
-            let apiKey = "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";  // Replace with your actual API key
-            let response = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-3.5-turbo",
-                    messages: [{ role: "user", content: userInput }]
-                })
-            });
-
-            let data = await response.json();
-            let botMessage = data.choices[0].message.content;
-            chatBox.innerHTML += `<div class="bot-message">${botMessage}</div>`;
+        
+            // Auto-scroll to latest message
+            chatBox.scrollTop = chatBox.scrollHeight;
+        
+            // Simulate bot response (Replace this with your API call)
+            setTimeout(() => {
+                let botMessage = document.createElement("div");
+                botMessage.className = "bot-message";
+                botMessage.textContent = "Hello! How can I help you?";
+                chatBox.appendChild(botMessage);
+        
+                // Auto-scroll again after bot reply
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000);
         }
+        
     </script>
 
     <style>
         #chat-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
+            width: 100%;
+            max-width: 400px; /* Adjust width */
+            margin: 20px auto; /* Center it */
+            padding: 10px;
             background: #fff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
