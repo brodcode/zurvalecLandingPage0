@@ -51,6 +51,8 @@
     </footer>
 
     <script>
+        let messageCount = 0;
+    
         async function sendMessage() {
             let userInput = document.getElementById("user-input").value;
             if (!userInput) return;
@@ -68,18 +70,25 @@
             // Auto-scroll to latest message
             chatBox.scrollTop = chatBox.scrollHeight;
         
-            // Simulate bot response (Replace this with your API call)
+            // Determine bot response
+            let botResponse = messageCount === 0 ? 
+                "You will die on May 2nd, 2039." : 
+                "HAHAHAHAHA";
+            
+            messageCount++; // Increment the message count
+    
+            // Simulate bot response
             setTimeout(() => {
                 let botMessage = document.createElement("div");
                 botMessage.className = "bot-message";
-                botMessage.textContent = "You will die on May 2nd, 2039.";
+                botMessage.textContent = botResponse;
                 chatBox.appendChild(botMessage);
         
                 // Auto-scroll again after bot reply
                 chatBox.scrollTop = chatBox.scrollHeight;
             }, 1000);
         }
-        
+
     </script>
 
     <style>
