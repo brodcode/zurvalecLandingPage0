@@ -35,6 +35,8 @@ button {
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
+    appearance: none;  /* Removes default button styling */
+    outline: none;     /* Removes any outline when the button is focused */
 }
 
 button:hover {
