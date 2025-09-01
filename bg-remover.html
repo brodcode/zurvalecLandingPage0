@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Background & Hole Remover</title>
+<style>
+  body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 20px; background-color: #f0f0f0; }
+  canvas { border: 1px solid #ccc; margin-top: 10px; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
+                                    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+                                    linear-gradient(45deg, transparent 75%, #ccc 75%),
+                                    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
+  input, button { margin: 5px; }
+  .info { max-width: 600px; margin-top: 20px; background-color: #fff; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+  #status { margin-top: 10px; font-weight: bold; color: green; }
+  .description { max-width: 600px; margin-top: 5px; color: #333; }
+</style>
+</head>
+<body>
+<h2>Background & Hole Remover</h2>
+<input type="file" id="upload" accept="image/*">
+<br>
+<label>Tolerance: <input type="range" id="tolerance" min="0" max="100" value="30"></label>
+<div class="description">Tolerance controls how similar a color must be to the selected pixel to be removed. Lower values remove only very similar colors; higher values remove a broader range.</div>
+<br>
+<p>Click anywhere on the image to remove the background starting from that point.</p>
+<button id="undo">Undo</button>
+<div id="status">No file loaded. To download your edited image, right-click on the image space and select 'Save image as...'</div>
+<br>
+<canvas id="canvas"></canvas>
+
+<div class="info">
+<h3>Limitations & Notes</h3>
+<ul>
+<li><strong>Supported file types:</strong> JPEG (.jpg/.jpeg), PNG (.png), GIF (.gif, first frame only), BMP (.bmp), WebP (.webp). SVG is not supported.</li>
+<li><strong>File size:</strong> Limited by browser memory and canvas size. Images up to ~3000x3000 px should work; larger images may slow down or crash the browser.</li>
+<li><strong>Background removal:</strong> Works best on relatively uniform backgrounds. Complex gradients, patterns, or photographic backgrounds may produce incomplete results.</li>
+<li><strong>Performance:</strong> Flood-fill is pixel-based and synchronous, so very large images may take time to process.</li>
+<li><strong>Browser:</strong> Use modern browsers like Chrome, Firefox, or Edge. Some older browsers may not load local images properly.</li>
+</ul>
+</div>
+
+<script>
+const upload = document.getElementById('upload');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+const undoBtn = document.getElementById('undo');
+let img = null;
+let imgLoaded = false;
+let undoStack = [];
+
+function saveState() {
+    if (!imgLoaded) return;
+    undoStack.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    if (undoStack.length > 10) undoStack.shift();
+}
+
+function resetCanvas() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    undoStack = [];
+    img = null;
+    imgLoaded = false;
+    status.textContent = 'No file loaded. To download your edited image, right-click on the image space and select \'Save image as...\'';
+}
+
+upload.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) {
+        resetCanvas();
+        return;
+    }
+
+    img = new Image();
+    imgLoaded = false;
+    status.textContent = 'Loading image...';
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.drawImage(img, 0, 0);
+            imgLoaded = true;
+            undoStack = [ctx.getImageData(0,0,canvas.width,canvas.height)];
+            status.textContent = 'Image loaded. Click on the image to remove background. To download, right-click the image.';
+        };
+        img.onerror = () => {
+            resetCanvas();
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+function colorDistance(c1, c2) {
+    return Math.sqrt((c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 + (c1[2]-c2[2])**2);
+}
+
+function floodFill(x, y, tolerance) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const data = ctx.getImageData(0, 0, w, h);
+    const pixels = data.data;
+    const startIdx = (y * w + x) * 4;
+
+    if (pixels[startIdx+3] === 0) return;
+
+    const stack = [[x, y]];
+    const startColor = [pixels[startIdx], pixels[startIdx+1], pixels[startIdx+2]];
+    const visited = new Uint8Array(w*h);
+
+    while(stack.length) {
+        const [cx, cy] = stack.pop();
+        const idx = (cy * w + cx);
+        if (visited[idx]) continue;
+        visited[idx] = 1;
+        const pIdx = idx * 4;
+        const curColor = [pixels[pIdx], pixels[pIdx+1], pixels[pIdx+2]];
+        if(colorDistance(startColor, curColor) <= tolerance) {
+            pixels[pIdx+3] = 0;
+            [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy]) => {
+                const nx=cx+dx, ny=cy+dy;
+                if(nx>=0 && ny>=0 && nx<w && ny<h) stack.push([nx,ny]);
+            });
+        }
+    }
+    ctx.putImageData(data,0,0);
+}
+
+canvas.addEventListener('click', e => {
+    if(!img || !imgLoaded) {
+        status.textContent = 'No image loaded yet. To download, right-click the image space.';
+        return;
+    }
+    saveState();
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor(e.clientX - rect.left);
+    const y = Math.floor(e.clientY - rect.top);
+    const tol = parseInt(document.getElementById('tolerance').value);
+    floodFill(x, y, tol);
+    status.textContent = 'Background removed at clicked location. To download, right-click the image.';
+});
+
+undoBtn.addEventListener('click', () => {
+    if (!undoStack.length) {
+        status.textContent = 'Nothing to undo. To download, right-click the image.';
+        return;
+    }
+    const lastState = undoStack.pop();
+    ctx.putImageData(lastState,0,0);
+    status.textContent = 'Undo performed. To download, right-click the image.';
+});
+</script>
+</body>
+</html>
+

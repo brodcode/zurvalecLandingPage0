@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Tools</title>
+<style>
+body { font-family: sans-serif; background: #f9f9f9; margin: 0; padding: 20px; }
+h1 { text-align: center; }
+.tool-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+.tool-card { background: white; border: 1px solid #ccc; border-radius: 8px; padding: 15px; width: 250px; text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.1);}
+.tool-card img { width: 100%; border-radius: 5px; }
+.tool-card button { margin-top: 10px; padding: 8px 12px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.tool-card button:hover { background: #45a049; }
+</style>
+</head>
+<body>
+<h1>My Tools</h1>
+<div class="tool-list">
+  <div class="tool-card">
+    <img src="images/bg-remover-preview.png" alt="Background Remover Preview">
+    <h3>Background & Hole Remover</h3>
+    <p>Remove backgrounds and transparent holes from images directly in the browser.</p>
+    <button onclick="window.location.href='bg-remover.html'">View Tool</button>
+  </div>
+  <!-- Add more tool cards here -->
+</div>
+</body>
+</html>
+
